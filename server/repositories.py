@@ -51,3 +51,57 @@ def create_item(sku, name, category, unit_price, quantity_in_stock):
             conn.commit()
 
     return item_id
+
+def create_sale_transaction(item_id, quantity, unit_price_at_time):
+    """
+    Record a sale transaction.
+    Inventory updates are handled by the database trigger.
+    """
+    sql = """
+        INSERT INTO transactions (
+            item_id,
+            type,
+            quantity,
+            unit_price_at_time
+        )
+        VALUES (%s, 'sale', %s, %s)
+        RETURNING id;
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                sql,
+                (item_id, quantity, unit_price_at_time)
+            )
+            transaction_id = cur.fetchone()[0]
+            conn.commit()
+
+    return transaction_id
+
+def create_restock_transaction(item_id, quantity, unit_price_at_time):
+    """
+    Record a restock transaction.
+    Inventory updates are handled by the database trigger.
+    """
+    sql = """
+        INSERT INTO transactions (
+            item_id,
+            type,
+            quantity,
+            unit_price_at_time
+        )
+        VALUES (%s, 'restock', %s, %s)
+        RETURNING id;
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                sql,
+                (item_id, quantity, unit_price_at_time)
+            )
+            transaction_id = cur.fetchone()[0]
+            conn.commit()
+
+    return transaction_id
