@@ -1,0 +1,1 @@
+console.log("Inventory Lite frontend loaded");
