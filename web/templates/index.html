@@ -16,39 +16,7 @@
         <button id="themeToggle" class="secondary" type="button">Light mode</button>
       </div>
 
-      <h2>Items</h2>
-
-      <h3>Add Item</h3>
-
-      <form id="addItemForm">
-        <input type="text" name="sku" placeholder="SKU" required />
-        <input type="text" name="name" placeholder="Name" required />
-        <input type="text" name="category" placeholder="Category" />
-        <input type="number" step="0.01" name="unit_price" placeholder="Unit Price" required />
-        <input type="number" name="quantity_in_stock" placeholder="Quantity" required />
-        <button type="submit">Add Item</button>
-      </form>
-
-      <h3>Record Transaction</h3>
-
-      <form id="saleForm">
-        <strong>Sale</strong><br />
-        <input type="number" name="item_id" placeholder="Item ID" required />
-        <input type="number" name="quantity" placeholder="Quantity" required />
-        <input type="number" step="0.01" name="unit_price_at_time" placeholder="Unit Price At Time" required />
-        <button type="submit">Record Sale</button>
-      </form>
-
-      <br />
-
-      <form id="restockForm">
-        <strong>Restock</strong><br />
-        <input type="number" name="item_id" placeholder="Item ID" required />
-        <input type="number" name="quantity" placeholder="Quantity" required />
-        <input type="number" step="0.01" name="unit_price_at_time" placeholder="Unit Price At Time" required />
-        <button type="submit">Record Restock</button>
-      </form>
-
+      <h3>Items</h3>
       <button id="refreshBtn">Refresh Items</button>
 
       <table border="1" cellpadding="6" cellspacing="0">
@@ -66,8 +34,37 @@
         <tbody id="itemsTbody"></tbody>
       </table>
 
-      <h2>Low Stock Report</h2>
+      <h3>Add Item</h3> 
+      <form id="addItemForm">
+        <input type="text" name="sku" placeholder="SKU" required />
+        <input type="text" name="name" placeholder="Name" required />
+        <input type="text" name="category" placeholder="Category" />
+        <input type="number" step="0.01" name="unit_price" placeholder="Unit Price" required />
+        <input type="number" name="quantity_in_stock" placeholder="Quantity" required />
+        <button type="submit">Add Item</button>
+      </form>
 
+      <h3>Record Transaction</h3>
+      <form id="saleForm">
+        <strong>Sale</strong><br />
+        <input type="number" name="item_id" placeholder="Item ID" required />
+        <input type="number" name="quantity" placeholder="Quantity" required />
+        <input type="number" step="0.01" name="unit_price_at_time" placeholder="Unit Price At Time" required />
+        <button type="submit">Record Sale</button>
+      </form>
+
+      <br/>
+
+      <form id="restockForm">
+        <strong>Restock</strong><br />
+        <input type="number" name="item_id" placeholder="Item ID" required />
+        <input type="number" name="quantity" placeholder="Quantity" required />
+        <input type="number" step="0.01" name="unit_price_at_time" placeholder="Unit Price At Time" required />
+        <button type="submit">Record Restock</button>
+      </form>
+
+
+      <h3>Low Stock Report</h3>
       <button id="loadLowStockBtn">Load Low Stock</button>
 
       <table border="1" cellpadding="6" cellspacing="0">
@@ -82,7 +79,7 @@
         <tbody id="lowStockTbody"></tbody>
       </table>
 
-      <h2>Sales Summary</h2>
+      <h3>Sales Summary</h3>
 
       <button id="loadSalesSummaryBtn">Load Sales Summary</button>
 
