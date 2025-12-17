@@ -1,3 +1,39 @@
+// Theme toggle (dark/light) with persistence
+(function initTheme() {
+  const saved = localStorage.getItem("theme");
+  if (saved === "light") {
+    document.documentElement.setAttribute("data-theme", "light");
+  }
+})();
+
+function updateThemeToggleLabel() {
+  const btn = document.getElementById("themeToggle");
+  if (!btn) return;
+  const isLight = document.documentElement.getAttribute("data-theme") === "light";
+  btn.textContent = isLight ? "Dark mode" : "Light mode";
+}
+
+(function setupThemeToggle() {
+  const btn = document.getElementById("themeToggle");
+  if (!btn) return;
+
+  updateThemeToggleLabel();
+
+  btn.addEventListener("click", () => {
+    const isLight = document.documentElement.getAttribute("data-theme") === "light";
+
+    if (isLight) {
+      document.documentElement.removeAttribute("data-theme");
+      localStorage.removeItem("theme");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light");
+      localStorage.setItem("theme", "light");
+    }
+
+    updateThemeToggleLabel();
+  });
+})();
+
 async function loadItems() {
   const res = await fetch("/api/items");
   const items = await res.json();
