@@ -127,6 +127,8 @@ http://127.0.0.1:8000/
 
 ## Resetting the Database (Local Development)
 
+This will permanently delete all local inventory and transaction data.
+
 To reset the database to a clean state during local development:
 
 1) Stop FastAPI (if running)
