@@ -125,6 +125,17 @@ http://127.0.0.1:8000/
 
 ---
 
+## Resetting the Database (Local Development)
+
+To reset the database to a clean state during local development:
+
+```bash
+docker compose down -v
+docker compose up -d
+```
+
+---
+
 ## API Endpoints
 
 ### Items
@@ -149,7 +160,6 @@ This project emphasizes:
 - Clear separation of concerns
 - Explicit SQL instead of ORMs
 - Database-level data integrity (constraints, triggers, and views)
-- Incremental development with clean Git history
 
 The focus is correctness, clarity, and real-world fundamentals over abstraction.
 
