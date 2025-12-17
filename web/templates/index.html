@@ -8,7 +8,89 @@
   </head>
   <body>
     <h1>Inventory Lite</h1>
-    <p>If you can see this page, FastAPI is serving HTML correctly.</p>
+
+    <h2>Items</h2>
+
+    <h3>Add Item</h3>
+
+    <form id="addItemForm">
+        <input type="text" name="sku" placeholder="SKU" required />
+        <input type="text" name="name" placeholder="Name" required />
+        <input type="text" name="category" placeholder="Category" />
+        <input type="number" step="0.01" name="unit_price" placeholder="Unit Price" required />
+        <input type="number" name="quantity_in_stock" placeholder="Quantity" required />
+        <button type="submit">Add Item</button>
+    </form>
+
+    <h3>Record Transaction</h3>
+
+    <form id="saleForm">
+        <strong>Sale</strong><br />
+        <input type="number" name="item_id" placeholder="Item ID" required />
+        <input type="number" name="quantity" placeholder="Quantity" required />
+        <input type="number" step="0.01" name="unit_price_at_time" placeholder="Unit Price At Time" required />
+        <button type="submit">Record Sale</button>
+    </form>
+
+    <br />
+
+    <form id="restockForm">
+        <strong>Restock</strong><br />
+        <input type="number" name="item_id" placeholder="Item ID" required />
+        <input type="number" name="quantity" placeholder="Quantity" required />
+        <input type="number" step="0.01" name="unit_price_at_time" placeholder="Unit Price At Time" required />
+        <button type="submit">Record Restock</button>
+    </form>
+
+    <button id="refreshBtn">Refresh Items</button>
+
+    <table border="1" cellpadding="6" cellspacing="0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>SKU</th>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Unit Price</th>
+          <th>In Stock</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody id="itemsTbody"></tbody>
+    </table>
+
+    <h2>Low Stock Report</h2>
+
+    <button id="loadLowStockBtn">Load Low Stock</button>
+
+    <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
+            <tr>
+            <th>ID</th>
+            <th>SKU</th>
+            <th>Name</th>
+            <th>In Stock</th>
+            </tr>
+        </thead>
+        <tbody id="lowStockTbody"></tbody>
+    </table>
+
+    <h2>Sales Summary</h2>
+
+    <button id="loadSalesSummaryBtn">Load Sales Summary</button>
+
+    <table border="1" cellpadding="6" cellspacing="0">
+    <thead>
+        <tr>
+        <th>Item ID</th>
+        <th>SKU</th>
+        <th>Name</th>
+        <th>Units Sold</th>
+        <th>Total Revenue</th>
+        </tr>
+    </thead>
+    <tbody id="salesSummaryTbody"></tbody>
+    </table>
 
     <script src="/static/app.js"></script>
   </body>
