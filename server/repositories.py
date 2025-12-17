@@ -105,3 +105,49 @@ def create_restock_transaction(item_id, quantity, unit_price_at_time):
             conn.commit()
 
     return transaction_id
+
+def get_low_stock_items(threshold):
+    """
+    Return items whose quantity_in_stock is below the given threshold.
+    """
+    sql = """
+        SELECT
+            id,
+            sku,
+            name,
+            category,
+            unit_price,
+            quantity_in_stock
+        FROM items
+        WHERE quantity_in_stock < %s
+        ORDER BY quantity_in_stock ASC;
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (threshold,))
+            rows = cur.fetchall()
+
+    return rows
+
+def get_sales_summary():
+    """
+    Return aggregated sales summary per item from the sales_summary view.
+    """
+    sql = """
+        SELECT
+            item_id,
+            sku,
+            name,
+            units_sold,
+            total_revenue
+        FROM sales_summary
+        ORDER BY total_revenue DESC;
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            rows = cur.fetchall()
+
+    return rows
