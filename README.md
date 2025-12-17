@@ -129,9 +129,34 @@ http://127.0.0.1:8000/
 
 To reset the database to a clean state during local development:
 
+1) Stop FastAPI (if running)
+
+```
+Ctrl + C
+```
+
+2) Stop Postgres and delete the data volume 
+
 ```bash
 docker compose down -v
+```
+
+3) Start Postgres again (empty)
+
+```bash
 docker compose up -d
+```
+
+4) Re-create the schema
+
+```bash
+docker compose exec -T postgres psql -U inventory_user -d inventory_db < server/schema.sql
+```
+
+5) Start FastAPI again
+
+```bash
+uvicorn server.main:app --reload
 ```
 
 ---
