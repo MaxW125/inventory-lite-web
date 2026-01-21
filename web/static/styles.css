@@ -145,3 +145,25 @@ tbody tr:nth-child(even) {
   color: var(--muted);
   font-size: 12px;
 }
+
+/* --- Table rendering fixes (force true table layout) --- */
+table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+thead { display: table-header-group; }
+tbody { display: table-row-group; }
+tr { display: table-row; }
+
+th, td {
+  display: table-cell;
+  vertical-align: top;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* If any global styles set cells/rows to flex/grid, this overrides them */
+tr, th, td { float: none; }

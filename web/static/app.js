@@ -34,162 +34,186 @@ function updateThemeToggleLabel() {
   });
 })();
 
-async function loadItems() {
-  const res = await fetch("/api/items");
-  const items = await res.json();
+// -----------------------------
+// Helpers
+// -----------------------------
 
-  const tbody = document.getElementById("itemsTbody");
+function byId(id) {
+  return document.getElementById(id);
+}
+
+function safeOn(id, eventName, handler) {
+  const el = byId(id);
+  if (!el) return;
+  el.addEventListener(eventName, handler);
+}
+
+async function fetchJson(url, options) {
+  const res = await fetch(url, options);
+  const data = await res.json().catch(() => null);
+  return { res, data };
+}
+
+// -----------------------------
+// Products
+// -----------------------------
+
+async function loadProducts() {
+  // New V1 endpoint
+  const { res, data } = await fetchJson("/api/products");
+  if (!res.ok) {
+    console.error("❌ Failed to load products", data);
+    return;
+  }
+
+  // Prefer a dedicated products tbody if you add one later.
+  // Fallback to the old itemsTbody so the existing page still renders something.
+  const tbody = byId("productsTbody") || byId("itemsTbody");
+  if (!tbody) return;
+
   tbody.innerHTML = "";
 
-  for (const item of items) {
+  for (const p of data) {
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
-      <td>${item.id}</td>
-      <td>${item.sku}</td>
-      <td>${item.name}</td>
-      <td>${item.category ?? ""}</td>
-      <td>${item.unit_price}</td>
-      <td>${item.quantity_in_stock}</td>
-      <td>${item.created_at}</td>
+      <td>${p.id ?? ""}</td>
+      <td>${p.sku ?? ""}</td>
+      <td>${p.name ?? ""}</td>
+      <td>${p.price ?? ""}</td>
     `;
 
     tbody.appendChild(tr);
   }
 }
 
-document.getElementById("refreshBtn").addEventListener("click", loadItems);
+async function createProductFromForm(form) {
+  const el = form.elements;
+
+  const payload = {
+    sku: el["sku"]?.value,
+    name: el["name"]?.value, // ✅ correct
+    price: el["price"]
+      ? parseFloat(el["price"].value)
+      : parseFloat(el["unit_price"]?.value),
+    materials_used: [],
+  };
+
+  const { res } = await fetchJson("/api/products", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    alert("Error creating product (check SKU uniqueness and price).");
+    return false;
+  }
+
+  return true;
+}
+
+// -----------------------------
+// Materials
+// -----------------------------
+
+async function loadMaterials() {
+  const { res, data } = await fetchJson("/api/materials");
+  if (!res.ok) {
+    console.error("❌ Failed to load materials", data);
+    return;
+  }
+
+  const tbody = byId("materialsTbody");
+  if (!tbody) return; // Only renders if your HTML includes this table.
+
+  tbody.innerHTML = "";
+
+  for (const m of data) {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${m.id ?? ""}</td>
+      <td>${m.category ?? ""}</td>
+      <td>${m.name ?? ""}</td>
+      <td>${m.color ?? ""}</td>
+      <td>${m.quantity_on_hand ?? 0}</td>
+      <td>${m.unit ?? ""}</td>
+      <td>${m.brand ?? ""}</td>
+      <td>${m.type ?? ""}</td>
+      <td>${m.finish ?? ""}</td>
+    `;
+
+    tbody.appendChild(tr);
+  }
+}
+
+async function createMaterialFromForm(form) {
+  const el = form.elements;
+
+  const category = ((el["category"]?.value) || "OTHER").toUpperCase();
+
+  const payload = {
+    category,
+    name: el["name"]?.value,                 // ✅ correct
+    color: el["color"]?.value || "N/A",
+    quantity_on_hand: el["quantity_on_hand"]?.value
+      ? parseFloat(el["quantity_on_hand"].value)
+      : 0,
+    unit: el["unit"]?.value || (category === "FILAMENT" ? "g" : "pcs"),
+    brand: el["brand"]?.value || null,
+    type: el["type"]?.value || null,
+    finish: el["finish"]?.value || null,
+  };
+
+  const { res } = await fetchJson("/api/materials", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    alert("Error creating material. Check required fields.");
+    return false;
+  }
+
+  return true;
+}
+
+// -----------------------------
+// Wiring
+// -----------------------------
+
+async function refreshAll() {
+  await Promise.all([loadProducts(), loadMaterials()]);
+}
+
+// Old refresh button still works
+safeOn("refreshBtn", "click", refreshAll);
+
+// Old form id still works: treat it as Add Product for V1
+safeOn("addItemForm", "submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+
+  const ok = await createProductFromForm(form);
+  if (!ok) return;
+
+  form.reset();
+  await refreshAll();
+});
+
+// New (optional) form id for materials if/when you add it in HTML
+safeOn("addMaterialForm", "submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+
+  const ok = await createMaterialFromForm(form);
+  if (!ok) return;
+
+  form.reset();
+  await refreshAll();
+});
 
 // Load on page open
-loadItems();
-
-document
-  .getElementById("addItemForm")
-  .addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const form = e.target;
-
-    const payload = {
-      sku: form.sku.value,
-      name: form.name.value,
-      category: form.category.value || null,
-      unit_price: parseFloat(form.unit_price.value),
-      quantity_in_stock: parseInt(form.quantity_in_stock.value),
-    };
-
-    const res = await fetch("/api/items", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      alert("Error creating item (check SKU uniqueness)");
-      return;
-    }
-
-    form.reset();
-    loadItems();
-  });
-
-  document.getElementById("saleForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const form = e.target;
-
-  const payload = {
-    item_id: parseInt(form.item_id.value),
-    quantity: parseInt(form.quantity.value),
-    unit_price_at_time: parseFloat(form.unit_price_at_time.value),
-  };
-
-  const res = await fetch("/api/transactions/sale", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    alert("Sale failed (possible not enough stock).");
-    return;
-  }
-
-  form.reset();
-  loadItems();
-});
-
-document.getElementById("restockForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const form = e.target;
-
-  const payload = {
-    item_id: parseInt(form.item_id.value),
-    quantity: parseInt(form.quantity.value),
-    unit_price_at_time: parseFloat(form.unit_price_at_time.value),
-  };
-
-  const res = await fetch("/api/transactions/restock", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    alert("Restock failed.");
-    return;
-  }
-
-  form.reset();
-  loadItems();
-});
-
-async function loadLowStock() {
-  const res = await fetch("/api/reports/low-stock");
-  const items = await res.json();
-
-  const tbody = document.getElementById("lowStockTbody");
-  tbody.innerHTML = "";
-
-  for (const item of items) {
-    const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-      <td>${item.id}</td>
-      <td>${item.sku}</td>
-      <td>${item.name}</td>
-      <td>${item.quantity_in_stock}</td>
-    `;
-
-    tbody.appendChild(tr);
-  }
-}
-
-document
-  .getElementById("loadLowStockBtn")
-  .addEventListener("click", loadLowStock);
-
-  async function loadSalesSummary() {
-  const res = await fetch("/api/reports/sales-summary");
-  const rows = await res.json();
-
-  const tbody = document.getElementById("salesSummaryTbody");
-  tbody.innerHTML = "";
-
-  for (const r of rows) {
-    const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-      <td>${r.item_id}</td>
-      <td>${r.sku}</td>
-      <td>${r.name}</td>
-      <td>${r.units_sold}</td>
-      <td>${r.total_revenue}</td>
-    `;
-
-    tbody.appendChild(tr);
-  }
-}
-
-document
-  .getElementById("loadSalesSummaryBtn")
-  .addEventListener("click", loadSalesSummary);
+refreshAll();

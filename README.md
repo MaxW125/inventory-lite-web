@@ -1,22 +1,37 @@
-# Inventory Lite
+# Mountory Inventory
 
-Inventory Lite is a simple full-stack web application for managing a hypothetical business’s inventory.
+Mountory Inventory is a purpose-built full-stack inventory system for managing products and materials for my 3D printing shop (**Mountory**).
 
-The project is intentionally built with a **minimal, transparent tech stack** to demonstrate core backend and full-stack fundamentals without hiding logic behind heavy frameworks or ORMs.
-
----
-
-## Features
-
-- Create inventory items (SKU, name, category, unit price, quantity)
-- Record sales and restocks
-- Automatic inventory updates using database triggers
-- Low-stock reporting
-- Sales summary reporting (units sold and total revenue per item)
+The project intentionally uses a **minimal, transparent tech stack** to demonstrate backend fundamentals, data modeling, and clean API design without hiding logic behind heavy frameworks or ORMs. What started as a generic inventory demo was deliberately pivoted into a real operational tool used to track filament, hardware, and sellable products.
 
 ---
 
-## Tech Stack
+## 🚀 Features (V1)
+
+### Products
+- Create products with:
+  - SKU
+  - Name
+  - Price
+- View all products in a live table
+
+### Materials
+- Track materials including:
+  - Filament (brand, color, type, finish, quantity)
+  - Hardware (screws, magnets, etc.)
+  - Packaging and miscellaneous supplies
+- Quantity on hand tracking
+- Supports different units (grams, pieces, etc.)
+
+### System
+- PostgreSQL-backed persistence
+- Clean repository layer using raw SQL
+- REST API via FastAPI
+- Lightweight frontend using vanilla JavaScript
+
+---
+
+## 🧰 Tech Stack
 
 ### Backend
 - Python
@@ -29,42 +44,38 @@ The project is intentionally built with a **minimal, transparent tech stack** to
 - Vanilla JavaScript (`fetch` API)
 
 ### Database
-- PostgreSQL (Dockerized)
-- Raw SQL schema
-- Primary keys, foreign keys, and constraints
-- Triggers for inventory updates
-- Views for aggregated reporting
+- PostgreSQL
+- Handwritten SQL schema
+- Explicit constraints and indexes
 
 ---
 
-## Architecture Overview
+## 🏗 Architecture Overview
 
-- **PostgreSQL** stores all application data and enforces business rules
-- **Database triggers** automatically update inventory after transactions
-- **Database views** handle reporting logic
-- **FastAPI** exposes a REST API and serves the frontend
-- **Repository layer** contains all raw SQL queries
-- **Vanilla JavaScript frontend** communicates with the API using `fetch()`
+- **PostgreSQL** stores all application data
+- **Raw SQL repositories** isolate all database access
+- **FastAPI** exposes REST endpoints and serves the frontend
+- **Vanilla JS frontend** communicates with the API using `fetch()`
 
-Inventory changes are recorded as immutable **transactions**, ensuring a clear audit trail.
+The system is intentionally simple, readable, and easy to extend.
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```text
-inventory-lite-web/
+mountory-inventory/
   server/
     main.py            # FastAPI app and routes
     db.py              # PostgreSQL connection helpers
     repositories.py    # Raw SQL queries
-    schema.sql         # Tables, triggers, and views
+    schema.sql         # Database schema
   web/
     templates/
       index.html       # Main UI
     static/
       app.js           # Frontend logic
-      styles.css       # Minimal styling
+      styles.css       # Styling
   docker-compose.yml  # PostgreSQL container
   requirements.txt
   README.md
@@ -72,13 +83,11 @@ inventory-lite-web/
 
 ---
 
-## Getting Started
-
-These instructions will get the project running locally.
+## ⚙️ Getting Started
 
 ### Prerequisites
-- Docker
 - Python 3.11+
+- Docker
 - Git
 
 ---
@@ -88,11 +97,11 @@ These instructions will get the project running locally.
 Clone the repository:
 
 ```bash
-git clone https://github.com/MaxW125/inventory-lite-web.git
-cd inventory-lite-web
+git clone https://github.com/MaxW125/mountory-inventory.git
+cd mountory-inventory
 ```
 
-Start PostgreSQL using Docker:
+Start PostgreSQL:
 
 ```bash
 docker compose up -d
@@ -111,13 +120,13 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Run the FastAPI server:
+Run the server:
 
 ```bash
-uvicorn server.main:app --reload
+python -m uvicorn server.main:app --reload
 ```
 
-Open the application in your browser:
+Open in browser:
 
 ```
 http://127.0.0.1:8000/
@@ -125,84 +134,44 @@ http://127.0.0.1:8000/
 
 ---
 
-## Resetting the Database (Local Development)
+## 🔌 API Endpoints (V1)
 
-This will permanently delete all local inventory and transaction data.
+### Products
+- `GET /api/products`
+- `POST /api/products`
 
-To reset the database to a clean state during local development:
-
-1) Stop FastAPI (if running)
-
-```
-Ctrl + C
-```
-
-2) Stop Postgres and delete the data volume 
-
-```bash
-docker compose down -v
-```
-
-3) Start Postgres again (empty)
-
-```bash
-docker compose up -d
-```
-
-4) Re-create the schema
-
-```bash
-docker compose exec -T postgres psql -U inventory_user -d inventory_db < server/schema.sql
-```
-
-5) Start FastAPI again
-
-```bash
-uvicorn server.main:app --reload
-```
+### Materials
+- `GET /api/materials`
+- `POST /api/materials`
 
 ---
 
-## API Endpoints
-
-### Items
-- `GET /api/items`
-- `POST /api/items`
-
-### Transactions
-- `POST /api/transactions/sale`
-- `POST /api/transactions/restock`
-
-### Reports
-- `GET /api/reports/low-stock`
-- `GET /api/reports/sales-summary`
-
----
-
-## Design Philosophy
+## 🧭 Design Philosophy
 
 This project emphasizes:
 
 - Minimal dependencies
+- Explicit SQL over ORMs
 - Clear separation of concerns
-- Explicit SQL instead of ORMs
-- Database-level data integrity (constraints, triggers, and views)
+- Predictable data flow
+- Production-minded schema design
 
-The focus is correctness, clarity, and real-world fundamentals over abstraction.
-
----
-
-## Future Improvements
-
-- Request validation with Pydantic
-- Improved error handling
-- Authentication and authorization
-- UI polish
-- Pagination and filtering
-- Deployment configuration
+The goal is correctness, clarity, and extensibility over abstraction.
 
 ---
 
-## License
+## 🗺 Roadmap (Planned)
+
+- Attach materials directly to products (join table)
+- Automatically deduct material inventory when products are sold
+- Cost calculation per product
+- Profit tracking
+- Low-stock alerts and reorder thresholds
+- Simple authentication
+- Deployment pipeline
+
+---
+
+## 📜 License
 
 This project is intended for educational and portfolio purposes.

@@ -3,98 +3,87 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Inventory Lite</title>
+    <title>Mountory Inventory</title>
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
     <div class="container">
       <div class="row" style="justify-content: space-between; align-items: center;">
         <div>
-          <h1>Inventory Lite</h1>
-          <p class="subtitle">Minimal full-stack inventory demo (FastAPI + PostgreSQL + vanilla JS)</p>
+          <h1>Mountory Inventory</h1>
+          <p class="subtitle">V1: Products + Materials (FastAPI + PostgreSQL + vanilla JS)</p>
         </div>
         <button id="themeToggle" class="secondary" type="button">Light mode</button>
       </div>
 
-      <h3>Items</h3>
-      <button id="refreshBtn">Refresh Items</button>
+      <div class="row" style="justify-content: space-between; align-items: center; gap: 12px;">
+        <h2 style="margin: 0;">Products</h2>
+        <button id="refreshBtn">Refresh</button>
+      </div>
 
-      <table border="1" cellpadding="6" cellspacing="0">
+      <table border="1" cellpadding="6" cellspacing="0" style="width: 100%;">
         <thead>
           <tr>
             <th>ID</th>
             <th>SKU</th>
             <th>Name</th>
-            <th>Category</th>
-            <th>Unit Price</th>
-            <th>In Stock</th>
-            <th>Created</th>
+            <th>Price</th>
           </tr>
         </thead>
         <tbody id="itemsTbody"></tbody>
       </table>
 
-      <h3>Add Item</h3> 
+      <h3>Add Product</h3>
+      <!-- Keep id addItemForm so app.js works without more changes -->
       <form id="addItemForm">
         <input type="text" name="sku" placeholder="SKU" required />
         <input type="text" name="name" placeholder="Name" required />
-        <input type="text" name="category" placeholder="Category" />
-        <input type="number" step="0.01" name="unit_price" placeholder="Unit Price" required />
-        <input type="number" name="quantity_in_stock" placeholder="Quantity" required />
-        <button type="submit">Add Item</button>
+        <input type="number" step="0.01" name="unit_price" placeholder="Price" required />
+        <button type="submit">Add Product</button>
       </form>
 
-      <h3>Record Transaction</h3>
-      <form id="saleForm">
-        <strong>Sale</strong><br />
-        <input type="number" name="item_id" placeholder="Item ID" required />
-        <input type="number" name="quantity" placeholder="Quantity" required />
-        <input type="number" step="0.01" name="unit_price_at_time" placeholder="Unit Price At Time" required />
-        <button type="submit">Record Sale</button>
-      </form>
+      <hr style="margin: 24px 0;" />
 
-      <br/>
+      <h2>Materials</h2>
 
-      <form id="restockForm">
-        <strong>Restock</strong><br />
-        <input type="number" name="item_id" placeholder="Item ID" required />
-        <input type="number" name="quantity" placeholder="Quantity" required />
-        <input type="number" step="0.01" name="unit_price_at_time" placeholder="Unit Price At Time" required />
-        <button type="submit">Record Restock</button>
-      </form>
-
-
-      <h3>Low Stock Report</h3>
-      <button id="loadLowStockBtn">Load Low Stock</button>
-
-      <table border="1" cellpadding="6" cellspacing="0">
+      <table border="1" cellpadding="6" cellspacing="0" style="width: 100%;">
         <thead>
           <tr>
             <th>ID</th>
-            <th>SKU</th>
+            <th>Category</th>
             <th>Name</th>
-            <th>In Stock</th>
+            <th>Color</th>
+            <th>Qty</th>
+            <th>Unit</th>
+            <th>Brand</th>
+            <th>Type</th>
+            <th>Finish</th>
           </tr>
         </thead>
-        <tbody id="lowStockTbody"></tbody>
+        <tbody id="materialsTbody"></tbody>
       </table>
 
-      <h3>Sales Summary</h3>
+      <h3>Add Material</h3>
+      <form id="addMaterialForm">
+        <select name="category" required>
+          <option value="FILAMENT">FILAMENT</option>
+          <option value="HARDWARE">HARDWARE</option>
+          <option value="PACKAGING">PACKAGING</option>
+          <option value="OTHER">OTHER</option>
+        </select>
 
-      <button id="loadSalesSummaryBtn">Load Sales Summary</button>
+        <input type="text" name="name" placeholder="Material name (e.g., PLA Filament, M3 Screws)" required />
+        <input type="text" name="color" placeholder="Color (or N/A)" />
 
-      <table border="1" cellpadding="6" cellspacing="0">
-        <thead>
-          <tr>
-            <th>Item ID</th>
-            <th>SKU</th>
-            <th>Name</th>
-            <th>Units Sold</th>
-            <th>Total Revenue</th>
-          </tr>
-        </thead>
-        <tbody id="salesSummaryTbody"></tbody>
-      </table>
+        <input type="number" step="0.01" name="quantity_on_hand" placeholder="Quantity on hand" />
+        <input type="text" name="unit" placeholder="Unit (g, pcs, etc.)" />
+
+        <input type="text" name="brand" placeholder="Brand (filament only)" />
+        <input type="text" name="type" placeholder="Type (PLA/PETG/TPU)" />
+        <input type="text" name="finish" placeholder="Finish (matte/silk/etc.)" />
+
+        <button type="submit">Add Material</button>
+      </form>
 
       <script src="/static/app.js"></script>
     </div>
