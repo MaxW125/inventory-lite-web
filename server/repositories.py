@@ -16,6 +16,7 @@ def list_materials():
             color,
             quantity_on_hand,
             unit,
+            cost_per_unit,
             brand,
             type,
             finish
@@ -37,6 +38,7 @@ def create_material(
     color,
     quantity_on_hand=0,
     unit="pcs",
+    cost_per_unit=0,
     brand=None,
     type=None,
     finish=None,
@@ -49,11 +51,12 @@ def create_material(
             color,
             quantity_on_hand,
             unit,
+            cost_per_unit,
             brand,
             type,
             finish
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id;
     """
 
@@ -61,12 +64,60 @@ def create_material(
         with conn.cursor() as cur:
             cur.execute(
                 sql,
-                (name, category, color, quantity_on_hand, unit, brand, type, finish),
+                (name, category, color, quantity_on_hand, unit, cost_per_unit, brand, type, finish),
             )
             material_id = cur.fetchone()[0]
             conn.commit()
 
     return material_id
+
+
+def update_material(
+    material_id: int,
+    category,
+    name,
+    color,
+    quantity_on_hand,
+    unit,
+    cost_per_unit,
+    brand=None,
+    type=None,
+    finish=None,
+):
+    """Update an existing material row."""
+    sql = """
+        UPDATE materials
+        SET
+            category = %s,
+            name = %s,
+            color = %s,
+            quantity_on_hand = %s,
+            unit = %s,
+            cost_per_unit = %s,
+            brand = %s,
+            type = %s,
+            finish = %s
+        WHERE id = %s;
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                sql,
+                (
+                    category,
+                    name,
+                    color,
+                    quantity_on_hand,
+                    unit,
+                    cost_per_unit,
+                    brand,
+                    type,
+                    finish,
+                    material_id,
+                ),
+            )
+            conn.commit()
 
 
 def find_material(category, name, color, brand=None, type=None, finish=None):
@@ -83,6 +134,7 @@ def find_material(category, name, color, brand=None, type=None, finish=None):
                 color,
                 quantity_on_hand,
                 unit,
+                cost_per_unit,
                 brand,
                 type,
                 finish
@@ -105,6 +157,7 @@ def find_material(category, name, color, brand=None, type=None, finish=None):
                 color,
                 quantity_on_hand,
                 unit,
+                cost_per_unit,
                 brand,
                 type,
                 finish
@@ -129,7 +182,7 @@ def find_or_create_material(material):
 
     Expects a dict with keys:
       - category, name, color
-      - optional: quantity_on_hand, unit
+      - optional: quantity_on_hand, unit, cost_per_unit
       - filament optional: brand, type, finish
 
     Returns: material_id
@@ -150,6 +203,7 @@ def find_or_create_material(material):
     unit = material.get("unit")
     if not unit:
         unit = "g" if category == "FILAMENT" else "pcs"
+    cost_per_unit = material.get("cost_per_unit", 0)
 
     existing = find_material(
         category=category,
@@ -168,6 +222,7 @@ def find_or_create_material(material):
         color=color,
         quantity_on_hand=quantity_on_hand,
         unit=unit,
+        cost_per_unit=cost_per_unit,
         brand=brand if category == "FILAMENT" else None,
         type=mtype if category == "FILAMENT" else None,
         finish=finish if category == "FILAMENT" else None,
@@ -179,16 +234,27 @@ def find_or_create_material(material):
 # -----------------------------
 
 def list_products():
-    """Return all products."""
+    """Return all products (including live unit_cost computed from BOM)."""
     sql = """
         SELECT
-            id,
-            sku,
-            name,
-            price,
-            materials_input
-        FROM products
-        ORDER BY id;
+            p.id,
+            p.sku,
+            p.name,
+            p.price,
+            p.is_listed,
+            COALESCE(SUM(pm.qty_per_unit * m.cost_per_unit), 0) AS unit_cost,
+            p.materials_input
+        FROM products p
+        LEFT JOIN product_materials pm ON pm.product_id = p.id
+        LEFT JOIN materials m ON m.id = pm.material_id
+        GROUP BY
+            p.id,
+            p.sku,
+            p.name,
+            p.price,
+            p.is_listed,
+            p.materials_input
+        ORDER BY p.id;
     """
 
     with get_connection() as conn:
@@ -199,12 +265,13 @@ def list_products():
     return rows
 
 
-def create_product(sku, name, price, materials_used=None):
+def create_product(sku, name, price, materials_used=None, is_listed=True):
     """Create a product.
 
-    If materials_used is provided (list of dicts), the function will:
-      1) ensure each material exists (auto-add into materials table)
-      2) store the original list into products.materials_input (JSON text)
+    - Inserts a product row (sku, name, price, is_listed)
+    - If materials_used is provided (list of dicts), the function will:
+        1) ensure each material exists (auto-add into materials table)
+        2) store the original list into products.materials_input (JSON text)
 
     Returns: product_id
     """
@@ -221,16 +288,85 @@ def create_product(sku, name, price, materials_used=None):
             sku,
             name,
             price,
+            is_listed,
             materials_input
         )
-        VALUES (%s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s)
         RETURNING id;
     """
 
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(sql, (sku, name, price, materials_input))
+            cur.execute(sql, (sku, name, price, is_listed, materials_input))
             product_id = cur.fetchone()[0]
             conn.commit()
 
     return product_id
+
+
+def set_product_listed(product_id: int, is_listed: bool):
+    """Update whether a product is actively listed/sellable."""
+    sql = """
+        UPDATE products
+        SET is_listed = %s
+        WHERE id = %s;
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (is_listed, product_id))
+            conn.commit()
+
+
+# -----------------------------
+# Product BOM (recipe)
+# -----------------------------
+
+def list_product_materials(product_id: int):
+    """Return the BOM (recipe) for a product."""
+    sql = """
+        SELECT
+            pm.material_id,
+            m.category,
+            m.name,
+            m.color,
+            m.unit,
+            pm.qty_per_unit
+        FROM product_materials pm
+        JOIN materials m ON m.id = pm.material_id
+        WHERE pm.product_id = %s
+        ORDER BY m.category, m.name, m.color;
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (product_id,))
+            return cur.fetchall()
+
+
+def upsert_product_material(product_id: int, material_id: int, qty_per_unit):
+    """Add or update one material line on a product BOM."""
+    sql = """
+        INSERT INTO product_materials (product_id, material_id, qty_per_unit)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (product_id, material_id)
+        DO UPDATE SET qty_per_unit = EXCLUDED.qty_per_unit;
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (product_id, material_id, qty_per_unit))
+            conn.commit()
+
+
+def delete_product_material(product_id: int, material_id: int):
+    """Remove one material line from a product BOM."""
+    sql = """
+        DELETE FROM product_materials
+        WHERE product_id = %s AND material_id = %s;
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (product_id, material_id))
+            conn.commit()

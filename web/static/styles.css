@@ -167,3 +167,35 @@ th, td {
 
 /* If any global styles set cells/rows to flex/grid, this overrides them */
 tr, th, td { float: none; }
+
+/* --- Navbar + page view styles --- */
+.nav {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0 18px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 18px;
+}
+
+.nav__link {
+  text-decoration: none;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  background: rgba(255,255,255,0.03);
+  font-weight: 600;
+}
+
+.nav__link:hover {
+  border-color: rgba(96,165,250,0.55);
+}
+
+.nav__link.active {
+  border-color: rgba(96,165,250,0.75);
+  background: rgba(96,165,250,0.14);
+}
+
+.page {
+  margin-top: 14px;
+}
